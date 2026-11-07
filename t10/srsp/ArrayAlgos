@@ -1,0 +1,157 @@
+using System;
+
+public static class ArrayAlgos
+{
+    // 1. Проверка, отсортирован ли массив по возрастанию
+    public static bool IsSorted(int[] a)
+    {
+        if (a == null || a.Length <= 1) return true;
+
+        for (int i = 0; i < a.Length - 1; i++)
+        {
+            if (a[i] > a[i + 1])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 2. Сортировка пузырьком на месте с флажком раннего выхода, возвращает число сравнений
+    public static int BubbleSort(int[] a)
+    {
+        if (a == null || a.Length <= 1) return 0;
+
+        int comparisons = 0;
+        int n = a.Length;
+
+        for (int i = 0; i < n - 1; i++)
+        {
+            bool swapped = false;
+
+            for (int j = 0; j < n - 1 - i; j++)
+            {
+                comparisons++;
+                if (a[j] > a[j + 1])
+                {
+                    int temp = a[j];
+                    a[j] = a[j + 1];
+                    a[j + 1] = temp;
+                    swapped = true;
+                }
+            }
+
+            if (!swapped)
+            {
+                break; // Ранний выход, если массив уже отсортирован
+            }
+        }
+
+        return comparisons;
+    }
+
+    // Вспомогательный метод: первый индекс элемента >= x
+    private static int LowerBound(int[] a, int x)
+    {
+        int left = 0;
+        int right = a.Length;
+
+        while (left < right)
+        {
+            int mid = left + (right - left) / 2;
+            if (a[mid] >= x)
+            {
+                right = mid;
+            }
+            else
+            {
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
+
+    // Вспомогательный метод: первый индекс элемента > x
+    private static int UpperBound(int[] a, int x)
+    {
+        int left = 0;
+        int right = a.Length;
+
+        while (left < right)
+        {
+            int mid = left + (right - left) / 2;
+            if (a[mid] > x)
+            {
+                right = mid;
+            }
+            else
+            {
+                left = mid + 1;
+            }
+        }
+        return left;
+    }
+
+    // 3. Количество вхождений x через два бинарных поиска
+    public static int CountOccurrences(int[] sortedA, int x)
+    {
+        if (sortedA == null || sortedA.Length == 0) return 0;
+
+        int firstIndex = LowerBound(sortedA, x);
+        int lastIndex = UpperBound(sortedA, x);
+
+        if (firstIndex < sortedA.Length && sortedA[firstIndex] == x)
+        {
+            return lastIndex - firstIndex;
+        }
+
+        return 0;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine("=== Тестирование BubbleSort и IsSorted ===");
+        int[][] testArrays = {
+            new int[] { },
+            new int[] { 5 },
+            new int[] { 1, 2, 3, 4, 5 },
+            new int[] { 5, 4, 3, 2, 1 },
+            new int[] { 3, 1, 3, 2, 3 }
+        };
+
+        foreach (var arr in testArrays)
+        {
+            int[] before = (int[])arr.Clone();
+            int comparisons = ArrayAlgos.BubbleSort(arr);
+            bool sortedAfter = ArrayAlgos.IsSorted(arr);
+
+            Console.WriteLine($"До: [{String.Join(", ", before)}]");
+            Console.WriteLine($"После: [{String.Join(", ", arr)}]");
+            Console.WriteLine($"IsSorted после сортировки: {sortedAfter}, Число сравнений: {comparisons}");
+            Console.WriteLine(new string('-', 40));
+        }
+
+        // Проверка сравнений на 1000 элементов
+        int[] largeArr = new int[1000];
+        for (int i = 0; i < 1000; i++) largeArr[i] = i + 1;
+        int largeComparisons = ArrayAlgos.BubbleSort(largeArr);
+        Console.WriteLine($"Тест раннего выхода на 1000 элементов (ожидается 999): {largeComparisons} сравнений\n");
+
+        Console.WriteLine("=== Тестирование CountOccurrences ===");
+        int[] sortedA = { 1, 2, 2, 2, 5, 7 };
+        int[] targets = { 2, 1, 7, 3, 9 };
+        int[] expectedCounts = { 3, 1, 1, 0, 0 };
+
+        Console.WriteLine($"Отсортированный массив: [{String.Join(", ", sortedA)}]");
+        for (int i = 0; i < targets.Length; i++)
+        {
+            int x = targets[i];
+            int actualCount = ArrayAlgos.CountOccurrences(sortedA, x);
+            bool ok = (actualCount == expectedCounts[i]);
+            Console.WriteLine($"x = {x} | Ожидалось: {expectedCounts[i]} | Фактически: {actualCount} | {(ok ? "OK" : "FAIL")}");
+        }
+    }
+}
